@@ -8,66 +8,94 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
-            background-color: black;
-            color: white;
+            background-color: #f5f5f5;
+            color: #333;
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.5em;
+        }
+        #intro {
+            background-color: #e8f5e9;
+            color: #333;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid #4CAF50;
         }
         #data {
             margin: 20px;
             display: flex;
             flex-wrap: wrap;
+            justify-content: space-around;
         }
         .crypto {
-            background: #1e1e1e;
+            background: #fff;
             border-radius: 10px;
             margin: 10px;
             padding: 20px;
             flex: 1 1 30%;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-        }
-        h4 {
             text-align: center;
         }
-        canvas {
-            display: none; /* 初始隱藏圖表 */
-            margin: 20px 0;
+        h4 {
+            color: #4CAF50;
+            text-align: center;
         }
-        img {
-            width: 24px;
-            height: 24px;
-            margin-right: 10px;
+        .crypto p {
+            margin: 5px 0;
+        }
+        .crypto img {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 10px;
+        }
+        canvas {
+            margin: 20px 0;
+            max-width: 90%;
         }
     </style>
 </head>
-<div id="intro">
-    <h2>網站簡介</h2>
-    <p>歡迎來到加密貨幣價格與圖表網站！這裡為您提供多種加密貨幣的即時價格和詳盡的歷史數據圖表。我們使用 CoinGecko API 確保數據的準確性，幫助您把握市場動向。</p>
-    <p>無論您是初學者還是經驗豐富的交易者，這個平台都是您了解和分析各種加密貨幣的重要工具。立即探索，提升您的投資決策！</p>
-</div>
-
 <body>
-    <h4>當前加密貨幣價格:</h4>
+    <header>加密貨幣價格與圖表</header>
+    <div id="intro">
+        <h2>網站簡介</h2>
+        <p>歡迎來到加密貨幣價格與圖表網站！這裡為您提供多種加密貨幣的即時價格和歷史數據圖表。使用 CoinGecko API 確保數據準確性，幫助您把握市場動向。</p>
+        <p>無論您是新手還是經驗豐富的投資者，這個平台都是您了解和分析加密貨幣的重要工具。立即探索，提升您的投資決策！</p>
+    </div>
+
+    <h4>當前加密貨幣價格與介紹:</h4>
     <div id="data"></div>
 
     <div id="charts">
         <canvas id="bitcoinChart"></canvas>
         <canvas id="ethereumChart"></canvas>
-        <canvas id="dogecoinChart"></canvas>
-        <canvas id="cardanoChart"></canvas>
-        <canvas id="solanaChart"></canvas>
-        <canvas id="rippleChart"></canvas>
-        <canvas id="litecoinChart"></canvas>
-        <canvas id="polkadotChart"></canvas>
-        <canvas id="chainlinkChart"></canvas>
-        <canvas id="renderChart"></canvas>
-        <canvas id="tonChart"></canvas>
+        <!-- 可根據需求增加更多圖表 -->
     </div>
 
     <script>
         const charts = {};
+        const cryptoDetails = [
+            { id: 'bitcoin', label: '比特幣', icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=014', description: '比特幣是第一種去中心化的數位貨幣，由匿名開發者創建，旨在提供無需第三方的數字交易方式。' },
+            { id: 'ethereum', label: '以太坊', icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.png?v=014', description: '以太坊是一個去中心化的區塊鏈平台，支援智能合約和去中心化應用（DApps）的開發。' },
+            { id: 'toncoin', label: 'TON', icon: 'https://cryptologos.cc/logos/toncoin-ton-logo.png?v=014', description: 'TON 是一種去中心化的網路和貨幣，由 Telegram 團隊開發，目的是使網絡互聯網更加私密。' },
+            { id: 'ripple', label: '瑞波幣', icon: 'https://cryptologos.cc/logos/ripple-xrp-logo.png?v=014', description: 'Ripple 是一種即時跨境支付的數位貨幣，致力於使全球支付系統更高效。' },
+            { id: 'dogecoin', label: '狗狗幣', icon: 'https://cryptologos.cc/logos/dogecoin-doge-logo.png?v=014', description: '狗狗幣原本是一個玩笑，現在成為網絡社群的喜愛，加強了網路小費和小額支付的使用。' },
+            { id: 'cardano', label: '卡爾達諾', icon: 'https://cryptologos.cc/logos/cardano-ada-logo.png?v=014', description: '卡爾達諾是一種基於科學研究設計的區塊鏈平台，提供高度安全和可擴展的環境。' },
+            { id: 'solana', label: '索拉納', icon: 'https://cryptologos.cc/logos/solana-sol-logo.png?v=014', description: 'Solana 是一個快速、去中心化的區塊鏈平台，設計用於支持大規模 DApps 開發。' },
+            { id: 'polkadot', label: '波卡', icon: 'https://cryptologos.cc/logos/polkadot-dots-logo.png?v=014', description: 'Polkadot 是一種互操作區塊鏈平台，使多條鏈相互連接並協同工作。' },
+            { id: 'chainlink', label: '鏈接', icon: 'https://cryptologos.cc/logos/chainlink-link-logo.png?v=014', description: 'Chainlink 提供安全的區塊鏈和實體世界之間的數據連接。' },
+            { id: 'render-token', label: 'Render', icon: 'https://cryptologos.cc/logos/render-token-rend-logo.png?v=014', description: 'Render Token 是一種去中心化圖形渲染解決方案，提供高效的計算資源分配。' },
+            { id: 'litecoin', label: '萊特幣', icon: 'https://cryptologos.cc/logos/litecoin-ltc-logo.png?v=014', description: '萊特幣是一種加密貨幣，以低成本快速交易而聞名。' }
+        ];
 
         function createChart(ctx, label) {
             return new Chart(ctx, {
@@ -113,33 +141,19 @@
             charts[chartId].data.labels.push(new Date());
             charts[chartId].data.datasets[0].data.push(price);
             charts[chartId].update();
-            $('#' + chartId).show();
         }
 
         function fetchData() {
-            const cryptos = [
-                { id: 'bitcoin', label: '比特幣', icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=014' },
-                { id: 'ethereum', label: '以太坊', icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.png?v=014' },
-                { id: 'dogecoin', label: '狗狗幣', icon: 'https://cryptologos.cc/logos/dogecoin-doge-logo.png?v=014' },
-                { id: 'cardano', label: '卡爾達諾', icon: 'https://cryptologos.cc/logos/cardano-ada-logo.png?v=014' },
-                { id: 'solana', label: '索拉納', icon: 'https://cryptologos.cc/logos/solana-sol-logo.png?v=014' },
-                { id: 'ripple', label: '瑞波幣', icon: 'https://cryptologos.cc/logos/ripple-xrp-logo.png?v=014' },
-                { id: 'litecoin', label: '萊特幣', icon: 'https://cryptologos.cc/logos/litecoin-ltc-logo.png?v=014' },
-                { id: 'polkadot', label: '波卡', icon: 'https://cryptologos.cc/logos/polkadot-dots-logo.png?v=014' },
-                { id: 'chainlink', label: '鏈接', icon: 'https://cryptologos.cc/logos/chainlink-link-logo.png?v=014' },
-                { id: 'render-token', label: 'RENDER', icon: 'https://cryptologos.cc/logos/render-token-rend-logo.png?v=014' },
-                { id: 'toncoin', label: 'TON', icon: 'https://cryptologos.cc/logos/toncoin-ton-logo.png?v=014' }
-            ];
-
-            $('#data').empty(); // 清空顯示區域
-            cryptos.forEach(crypto => {
+            $('#data').empty();
+            cryptoDetails.forEach(crypto => {
                 $.getJSON(`https://api.coingecko.com/api/v3/simple/price?ids=${crypto.id}&vs_currencies=usd`, data => {
                     if (data[crypto.id]) {
                         const price = data[crypto.id].usd;
                         $('#data').append(`
                             <div class="crypto">
                                 <img src="${crypto.icon}" alt="${crypto.label}圖標">
-                                <p>${crypto.label}: $${price}</p>
+                                <p><strong>${crypto.label}:</strong> $${price}</p>
+                                <p>${crypto.description}</p>
                             </div>
                         `);
                         updateChart(`${crypto.id}Chart`, price, crypto.label);
