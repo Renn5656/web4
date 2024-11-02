@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加密貨幣價格與圖表</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        #data {
+            margin: 20px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .crypto {
+            background: #1e1e1e;
+            border-radius: 10px;
+            margin: 10px;
+            padding: 20px;
+            flex: 1 1 30%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        h4 {
+            text-align: center;
+        }
+        canvas {
+            display: none; /* 初始隱藏圖表 */
+            margin: 20px 0;
+        }
+        img {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<div id="intro">
+    <h2>網站簡介</h2>
+    <p>歡迎來到加密貨幣價格與圖表網站！這裡為您提供多種加密貨幣的即時價格和詳盡的歷史數據圖表。我們使用 CoinGecko API 確保數據的準確性，幫助您把握市場動向。</p>
+    <p>無論您是初學者還是經驗豐富的交易者，這個平台都是您了解和分析各種加密貨幣的重要工具。立即探索，提升您的投資決策！</p>
+</div>
+
+<body>
+    <h4>當前加密貨幣價格:</h4>
+    <div id="data"></div>
+
+    <div id="charts">
+        <canvas id="bitcoinChart"></canvas>
+        <canvas id="ethereumChart"></canvas>
+        <canvas id="dogecoinChart"></canvas>
+        <canvas id="cardanoChart"></canvas>
+        <canvas id="solanaChart"></canvas>
+        <canvas id="rippleChart"></canvas>
+        <canvas id="litecoinChart"></canvas>
+        <canvas id="polkadotChart"></canvas>
+        <canvas id="chainlinkChart"></canvas>
+        <canvas id="renderChart"></canvas>
+        <canvas id="tonChart"></canvas>
+    </div>
+
+    <script>
+        const charts = {};
+
+        function createChart(ctx, label) {
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: label,
+                        data: [],
+                        borderColor: 'rgb(75, 192, 192)',
+                        borderWidth: 2,
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'minute'
+                            },
+                            title: {
+                                display: true,
+                                text: '時間'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '價格 (USD)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart(chartId, price, label) {
+            if (!charts[chartId]) {
+                const ctx = document.getElementById(chartId).getContext('2d');
+                charts[chartId] = createChart(ctx, label);
+            }
+            charts[chartId].data.labels.push(new Date());
+            charts[chartId].data.datasets[0].data.push(price);
+            charts[chartId].update();
+            $('#' + chartId).show();
+        }
+
+        function fetchData() {
+            const cryptos = [
+                { id: 'bitcoin', label: '比特幣', icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=014' },
+                { id: 'ethereum', label: '以太坊', icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.png?v=014' },
+                { id: 'dogecoin', label: '狗狗幣', icon: 'https://cryptologos.cc/logos/dogecoin-doge-logo.png?v=014' },
+                { id: 'cardano', label: '卡爾達諾', icon: 'https://cryptologos.cc/logos/cardano-ada-logo.png?v=014' },
+                { id: 'solana', label: '索拉納', icon: 'https://cryptologos.cc/logos/solana-sol-logo.png?v=014' },
+                { id: 'ripple', label: '瑞波幣', icon: 'https://cryptologos.cc/logos/ripple-xrp-logo.png?v=014' },
+                { id: 'litecoin', label: '萊特幣', icon: 'https://cryptologos.cc/logos/litecoin-ltc-logo.png?v=014' },
+                { id: 'polkadot', label: '波卡', icon: 'https://cryptologos.cc/logos/polkadot-dots-logo.png?v=014' },
+                { id: 'chainlink', label: '鏈接', icon: 'https://cryptologos.cc/logos/chainlink-link-logo.png?v=014' },
+                { id: 'render-token', label: 'RENDER', icon: 'https://cryptologos.cc/logos/render-token-rend-logo.png?v=014' },
+                { id: 'toncoin', label: 'TON', icon: 'https://cryptologos.cc/logos/toncoin-ton-logo.png?v=014' }
+            ];
+
+            $('#data').empty(); // 清空顯示區域
+            cryptos.forEach(crypto => {
+                $.getJSON(`https://api.coingecko.com/api/v3/simple/price?ids=${crypto.id}&vs_currencies=usd`, data => {
+                    if (data[crypto.id]) {
+                        const price = data[crypto.id].usd;
+                        $('#data').append(`
+                            <div class="crypto">
+                                <img src="${crypto.icon}" alt="${crypto.label}圖標">
+                                <p>${crypto.label}: $${price}</p>
+                            </div>
+                        `);
+                        updateChart(`${crypto.id}Chart`, price, crypto.label);
+                    } else {
+                        console.error(`No data found for ${crypto.label}`);
+                    }
+                }).fail(function() {
+                    console.error(`Failed to fetch data for ${crypto.label}`);
+                });
+            });
+        }
+
+        fetchData();
+        setInterval(fetchData, 60000); // 每分鐘更新一次價格
+    </script>
+</body>
+</html>
